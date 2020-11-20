@@ -18,6 +18,8 @@ $ casync --store=remote/ubuntu-18.castr make remote/ubuntu-18.caibx docker/ubunt
 $ casync --store=remote/ubuntu-20.castr make remote/ubuntu-20.caibx docker/ubuntu-20.tar
 ```
 
+### local
+
 full update
 
 ```bash
@@ -52,6 +54,33 @@ Bytes used from remote store: 0B
 $ diff docker/ubuntu-20.tar local/ubuntu-20.tar
 ```
 
+### remote
+
+delta update
+
+```bash
+$ vagrant up
+$ vagrant ssh client|server
+# gen keys to /vagrant/ssh/casync on client
+$ ssh-keygen -t rsa -b 4096 -C casync
+# add key on server
+$ cat ssh/casync.pub >> /home/vagrant/.ssh/authorized_keys
+# add key to ssh agent on client
+$ eval `ssh-agent -s`
+$ ssh-add ssh/casync
+# download ubuntu 20 via ssh
+$ casync -v --store=vagrant@<ip>:/vagrant/remote/ubuntu-20.castr \
+extract vagrant@<ip>:/vagrant/remote/ubuntu-20.caibx --seed=local/ubuntu-18.tar local/ubuntu-20.tar
+Zero bytes written as sparse files: 7.2M
+Bytes cloned through reflinks: 0B
+Chunk requests fulfilled from local store: 0
+Bytes used from local store: 0B
+Chunk requests fulfilled from local seed: 49
+Bytes used from local seed: 2.5M # still only ~3% :)
+Chunk requests fulfilled from remote store: 1015
+Bytes used from remote store: 69.2M
+```
+
 # todos
 - [x] create chunked store and index
 - [x] reconstruct blob
@@ -68,6 +97,7 @@ $ diff docker/ubuntu-20.tar local/ubuntu-20.tar
 - [ ] try multiple stores flag --extra-store=PATH
 - [ ] multiple seeds
 - [ ] resume download
+- [x] casync ssh
 
 # license
 MIT
